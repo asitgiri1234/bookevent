@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import eventRoutes from "./routes/eventRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
@@ -15,9 +16,9 @@ app.get("/api/health", (req, res) => {
 });
 
 // API routes
+app.use("/api/auth", authRoutes);
 app.use("/api/events", eventRoutes);
 // More routes mounted in later steps:
-// app.use("/api/auth", authRoutes);
 // app.use("/api/reserve", reserveRoutes);
 // app.use("/api/bookings", bookingRoutes);
 
