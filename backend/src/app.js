@@ -3,6 +3,7 @@ import cors from "cors";
 import eventRoutes from "./routes/eventRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import reserveRoutes from "./routes/reserveRoutes.js";
+import bookingRoutes from "./routes/bookingRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
@@ -20,8 +21,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/reserve", reserveRoutes);
-// More routes mounted in later steps:
-// app.use("/api/bookings", bookingRoutes);
+app.use("/api/bookings", bookingRoutes);
 
 // 404 handler for unknown routes
 app.use((req, res) => {
