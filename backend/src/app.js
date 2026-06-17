@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import eventRoutes from "./routes/eventRoutes.js";
+import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
 
@@ -12,9 +14,10 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "BookEvent API is running" });
 });
 
-// Routes will be mounted here in later steps:
+// API routes
+app.use("/api/events", eventRoutes);
+// More routes mounted in later steps:
 // app.use("/api/auth", authRoutes);
-// app.use("/api/events", eventRoutes);
 // app.use("/api/reserve", reserveRoutes);
 // app.use("/api/bookings", bookingRoutes);
 
@@ -22,5 +25,8 @@ app.get("/api/health", (req, res) => {
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
+
+// Central error handler — must be registered last.
+app.use(errorHandler);
 
 export default app;
