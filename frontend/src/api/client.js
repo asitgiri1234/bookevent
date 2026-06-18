@@ -15,4 +15,26 @@ client.interceptors.request.use((config) => {
   return config;
 });
 
+// Self-heal on auth failure: if a protected request comes back 401, the stored
+// token is missing/expired/invalid. Clear the cached auth and send the user to
+// login so they get a fresh, valid token instead of being stuck on an error.
+client.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error.response?.status;
+    const url = error.config?.url || "";
+    const isAuthRequest = url.includes("/auth/"); // don't bounce on login/register
+
+    if (status === 401 && !isAuthRequest && localStorage.getItem("token")) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      if (window.location.pathname !== "/login") {
+        // Full redirect so React state resets cleanly.
+        window.location.href = "/login";
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default client;
