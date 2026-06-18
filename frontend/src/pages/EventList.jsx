@@ -9,7 +9,7 @@ export default function EventList() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    let active = true; // guards against setting state after unmount
+    let active = true;
     client
       .get("/events")
       .then(({ data }) => active && setEvents(data))
@@ -24,22 +24,48 @@ export default function EventList() {
     };
   }, []);
 
-  if (loading) return <p className="muted">Loading events…</p>;
-  if (error) return <div className="alert alert-error">{error}</div>;
-
   return (
     <div>
-      <h1>Upcoming Events</h1>
-      <div className="event-grid">
-        {events.map((ev) => (
-          <Link key={ev._id} to={`/events/${ev._id}`} className="event-card">
-            <h2>{ev.name}</h2>
-            <p className="muted">{formatDate(ev.dateTime)}</p>
-            <p className="event-venue">📍 {ev.venue}</p>
-            <span className="event-seats">{ev.totalSeats} seats</span>
-          </Link>
-        ))}
-      </div>
+      {/* Hero banner */}
+      <section className="hero">
+        <div className="hero-content">
+          <h1>Find your next experience</h1>
+          <p>
+            Concerts, comedy nights, conferences — reserve your seats in seconds.
+          </p>
+        </div>
+      </section>
+
+      <h2 className="section-title">Upcoming Events</h2>
+
+      {loading && <p className="muted">Loading events…</p>}
+      {error && <div className="alert alert-error">{error}</div>}
+
+      {!loading && !error && (
+        <div className="event-grid">
+          {events.map((ev) => (
+            <Link key={ev._id} to={`/events/${ev._id}`} className="event-card">
+              <div
+                className="event-image"
+                style={{ backgroundImage: `url(${ev.imageUrl})` }}
+              >
+                {ev.category && (
+                  <span className="event-category">{ev.category}</span>
+                )}
+              </div>
+              <div className="event-card-body">
+                <h3>{ev.name}</h3>
+                <p className="muted event-date">{formatDate(ev.dateTime)}</p>
+                <p className="event-venue">📍 {ev.venue}</p>
+                <div className="event-card-footer">
+                  <span className="event-seats">{ev.totalSeats} seats</span>
+                  <span className="event-book-link">Book →</span>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

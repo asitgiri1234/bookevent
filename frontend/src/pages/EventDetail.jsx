@@ -3,19 +3,17 @@ import { useParams, Link } from "react-router-dom";
 import client from "../api/client";
 import SeatGrid from "../components/SeatGrid";
 import CountdownTimer from "../components/CountdownTimer";
+import { useReservation } from "../context/ReservationContext";
 import { formatDate } from "../utils/format";
 
 export default function EventDetail() {
   const { id } = useParams();
+  const { reservation, startReservation, clearReservation } = useReservation();
 
   const [event, setEvent] = useState(null);
   const [seats, setSeats] = useState([]);
-  const [selected, setSelected] = useState([]); // selected seatNumbers
+  const [selected, setSelected] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // Flow state: "select" → "reserved" → "booked"
-  const [phase, setPhase] = useState("select");
-  const [reservation, setReservation] = useState(null); // {reservationId, seatNumbers, expiresAt}
   const [bookedSeats, setBookedSeats] = useState([]);
 
   const [error, setError] = useState("");
@@ -23,13 +21,18 @@ export default function EventDetail() {
   const [reserving, setReserving] = useState(false);
   const [booking, setBooking] = useState(false);
 
-  // Refetch the current seat statuses for this event.
+  // The global reservation only applies here if it's for THIS event.
+  const myReservation =
+    reservation && reservation.eventId === id ? reservation : null;
+
+  // Derived flow phase.
+  const phase = bookedSeats.length ? "booked" : myReservation ? "reserved" : "select";
+
   const refetchSeats = useCallback(async () => {
     const { data } = await client.get(`/events/${id}`);
     setSeats(data.seats);
   }, [id]);
 
-  // Initial load.
   useEffect(() => {
     let active = true;
     client
@@ -50,7 +53,6 @@ export default function EventDetail() {
     };
   }, [id]);
 
-  // Toggle a seat in/out of the selection (only while choosing, only available).
   const toggleSeat = (seat) => {
     if (phase !== "select" || seat.status !== "available") return;
     setError("");
@@ -62,7 +64,6 @@ export default function EventDetail() {
     );
   };
 
-  // Step 1: reserve the selected seats.
   const handleReserve = async () => {
     setError("");
     setInfo("");
@@ -72,18 +73,19 @@ export default function EventDetail() {
         eventId: id,
         seatNumbers: selected,
       });
-      setReservation({
+      // Save to the global, persisted reservation state.
+      startReservation({
         reservationId: data.reservation._id,
+        eventId: id,
+        eventName: event.name,
         seatNumbers: data.reservation.seatNumbers,
         expiresAt: data.expiresAt,
       });
-      setPhase("reserved");
       setSelected([]);
       await refetchSeats();
     } catch (err) {
       const res = err.response;
       if (res?.status === 409) {
-        // A seat became unavailable between selection and reserve.
         const taken = res.data.unavailableSeats || [];
         setError(
           `These seats were just taken: ${taken.join(", ")}. Please choose again.`
@@ -98,26 +100,22 @@ export default function EventDetail() {
     }
   };
 
-  // When the 10-minute hold runs out before booking.
   const handleExpire = useCallback(() => {
-    setReservation(null);
-    setPhase("select");
-    setSelected([]);
+    clearReservation();
     setInfo("Your reservation expired. Please select seats again.");
     refetchSeats();
-  }, [refetchSeats]);
+  }, [clearReservation, refetchSeats]);
 
-  // Step 2: confirm the booking.
   const handleBooking = async () => {
+    if (!myReservation) return;
     setError("");
     setBooking(true);
     try {
       const { data } = await client.post("/bookings", {
-        reservationId: reservation.reservationId,
+        reservationId: myReservation.reservationId,
       });
       setBookedSeats(data.seatNumbers);
-      setReservation(null);
-      setPhase("booked");
+      clearReservation();
       await refetchSeats();
     } catch (err) {
       const res = err.response;
@@ -132,13 +130,11 @@ export default function EventDetail() {
     }
   };
 
-  // Book again after a successful booking.
   const reset = () => {
     setBookedSeats([]);
     setSelected([]);
     setError("");
     setInfo("");
-    setPhase("select");
   };
 
   if (loading) return <p className="muted">Loading…</p>;
@@ -151,10 +147,22 @@ export default function EventDetail() {
         ← Back to events
       </Link>
 
-      <h1>{event.name}</h1>
-      <p className="muted event-meta">
-        {formatDate(event.dateTime)} · {event.venue}
-      </p>
+      {/* Event header with image */}
+      <div className="detail-header">
+        {event.imageUrl && (
+          <div
+            className="detail-image"
+            style={{ backgroundImage: `url(${event.imageUrl})` }}
+          />
+        )}
+        <div className="detail-info">
+          {event.category && <span className="badge">{event.category}</span>}
+          <h1>{event.name}</h1>
+          <p className="muted event-meta">
+            {formatDate(event.dateTime)} · {event.venue}
+          </p>
+        </div>
+      </div>
 
       {error && <div className="alert alert-error">{error}</div>}
       {info && <div className="alert alert-info">{info}</div>}
@@ -162,11 +170,10 @@ export default function EventDetail() {
       <SeatGrid
         seats={seats}
         selected={selected}
-        mine={reservation ? reservation.seatNumbers : []}
+        mine={myReservation ? myReservation.seatNumbers : []}
         onToggle={toggleSeat}
       />
 
-      {/* ---- Bottom action panel changes with the flow phase ---- */}
       {phase === "select" && (
         <div className="action-bar">
           {selected.length > 0 ? (
@@ -182,16 +189,18 @@ export default function EventDetail() {
             disabled={selected.length === 0 || reserving}
             onClick={handleReserve}
           >
-            {reserving ? "Reserving…" : `Reserve${selected.length ? ` (${selected.length})` : ""}`}
+            {reserving
+              ? "Reserving…"
+              : `Reserve${selected.length ? ` (${selected.length})` : ""}`}
           </button>
         </div>
       )}
 
-      {phase === "reserved" && reservation && (
+      {phase === "reserved" && myReservation && (
         <div className="action-bar reserved-bar">
           <div>
             <div className="reserved-seats">
-              Holding <strong>{reservation.seatNumbers.join(", ")}</strong>
+              Holding <strong>{myReservation.seatNumbers.join(", ")}</strong>
             </div>
             <div className="muted reserved-hint">
               Confirm before the timer runs out or the seats are released.
@@ -201,7 +210,7 @@ export default function EventDetail() {
             <span className="timer-wrap">
               <span className="timer-label">Time left</span>
               <CountdownTimer
-                expiresAt={reservation.expiresAt}
+                expiresAt={myReservation.expiresAt}
                 onExpire={handleExpire}
               />
             </span>
@@ -229,8 +238,8 @@ export default function EventDetail() {
             <button type="button" className="btn btn-ghost" onClick={reset}>
               Book more seats
             </button>
-            <Link to="/" className="btn btn-primary">
-              Back to events
+            <Link to="/bookings" className="btn btn-primary">
+              View my bookings
             </Link>
           </div>
         </div>

@@ -37,6 +37,7 @@ export function AuthProvider({ children }) {
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("activeReservation"); // drop any held seats on logout
     setUser(null);
   };
 

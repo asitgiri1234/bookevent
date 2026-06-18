@@ -22,6 +22,9 @@ const sampleEvents = [
     name: "Coldplay Live in Concert",
     dateTime: new Date("2026-08-15T19:30:00"),
     venue: "Wankhede Stadium, Mumbai",
+    category: "Music",
+    imageUrl:
+      "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&q=80",
     rows: 5,
     cols: 8, // 40 seats
   },
@@ -29,6 +32,9 @@ const sampleEvents = [
     name: "Stand-up Comedy Night",
     dateTime: new Date("2026-07-20T20:00:00"),
     venue: "The Comedy Club, Bengaluru",
+    category: "Comedy",
+    imageUrl:
+      "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=800&q=80",
     rows: 4,
     cols: 6, // 24 seats
   },
@@ -36,6 +42,9 @@ const sampleEvents = [
     name: "Tech Conference 2026",
     dateTime: new Date("2026-09-10T09:00:00"),
     venue: "Convention Centre, Hyderabad",
+    category: "Conference",
+    imageUrl:
+      "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80",
     rows: 6,
     cols: 10, // 60 seats
   },

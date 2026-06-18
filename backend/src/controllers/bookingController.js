@@ -1,5 +1,6 @@
 import Seat from "../models/Seat.js";
 import Reservation from "../models/Reservation.js";
+import Booking from "../models/Booking.js";
 
 /**
  * POST /api/bookings   (protected)
@@ -78,14 +79,37 @@ export const createBooking = async (req, res, next) => {
         .json({ message: "Could not book all seats, please reserve again" });
     }
 
+    // Record the booking so the user can see it in their history.
+    const booking = await Booking.create({
+      userId,
+      eventId: reservation.eventId,
+      seatNumbers: reservation.seatNumbers,
+    });
+
     // Booking is final — remove the reservation per the spec.
     await Reservation.deleteOne({ _id: reservation._id });
 
     return res.status(201).json({
       message: "Booking confirmed",
+      bookingId: booking._id,
       eventId: reservation.eventId,
       seatNumbers: reservation.seatNumbers,
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * GET /api/bookings   (protected)
+ * Return the logged-in user's bookings, newest first, with event details.
+ */
+export const getMyBookings = async (req, res, next) => {
+  try {
+    const bookings = await Booking.find({ userId: req.user.id })
+      .sort({ createdAt: -1 })
+      .populate("eventId", "name dateTime venue imageUrl category");
+    res.json(bookings);
   } catch (err) {
     next(err);
   }

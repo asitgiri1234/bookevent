@@ -18,6 +18,9 @@ export default function Navbar() {
       <div className="nav-right">
         {user ? (
           <>
+            <Link to="/bookings" className="nav-link">
+              My Bookings
+            </Link>
             <span className="nav-user">Hi, {user.name}</span>
             <button className="btn btn-ghost" onClick={handleLogout}>
               Logout
