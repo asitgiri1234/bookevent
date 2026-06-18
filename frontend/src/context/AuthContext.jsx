@@ -20,13 +20,27 @@ export function AuthProvider({ children }) {
     setUser(user);
   };
 
+  // Register no longer logs in — it triggers a verification email and returns
+  // { message, email, previewUrl } so the UI can send the user to verify.
   const register = async (name, email, password) => {
     const { data } = await client.post("/auth/register", {
       name,
       email,
       password,
     });
+    return data;
+  };
+
+  // Verify the 6-digit code; on success the backend returns a token (auto-login).
+  const verify = async (email, code) => {
+    const { data } = await client.post("/auth/verify", { email, code });
     persist(data.token, data.user);
+  };
+
+  // Ask for a fresh code; returns { message, previewUrl }.
+  const resend = async (email) => {
+    const { data } = await client.post("/auth/resend", { email });
+    return data;
   };
 
   const login = async (email, password) => {
@@ -42,7 +56,9 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, register, login, logout }}>
+    <AuthContext.Provider
+      value={{ user, register, verify, resend, login, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

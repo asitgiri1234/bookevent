@@ -22,8 +22,14 @@ export default function Login() {
       await login(email, password);
       navigate("/");
     } catch (err) {
+      const res = err.response;
+      // Unverified account → send them to the verification page.
+      if (res?.status === 403 && res.data?.needsVerification) {
+        navigate("/verify", { state: { email: res.data.email } });
+        return;
+      }
       // Show the backend's message (e.g. "Invalid email or password").
-      setError(err.response?.data?.message || "Login failed. Please try again.");
+      setError(res?.data?.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
