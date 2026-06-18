@@ -83,8 +83,13 @@ export const sendVerificationEmail = async (to, code) => {
 
   // Modes 2/3: nodemailer (Gmail real, or Ethereal test)
   const transporter = await getTransporter();
+  // Gmail forces the address to the authenticated account, so use it (with a
+  // "BookEvent" display name). Falls back to a label for the Ethereal inbox.
+  const from = process.env.EMAIL_USER
+    ? `"BookEvent" <${process.env.EMAIL_USER}>`
+    : '"BookEvent" <no-reply@bookevent.app>';
   const info = await transporter.sendMail({
-    from: '"BookEvent" <no-reply@bookevent.app>',
+    from,
     to,
     subject: SUBJECT,
     text: `Your verification code is ${code}. It expires in 10 minutes.`,
