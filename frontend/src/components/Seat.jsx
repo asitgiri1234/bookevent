@@ -1,9 +1,10 @@
 /**
  * A single seat button. Available seats are clickable (and toggle selection);
- * reserved/booked seats are disabled. `index` drives the staggered entrance
+ * reserved/booked seats are disabled. `mine` marks seats the current user is
+ * holding via an active reservation. `index` drives the staggered entrance
  * animation so the grid fills in as a smooth wave.
  */
-export default function Seat({ seat, selected, onToggle, index }) {
+export default function Seat({ seat, selected, mine, onToggle, index }) {
   const status = selected ? "selected" : seat.status;
   const disabled = seat.status !== "available";
 
@@ -13,12 +14,12 @@ export default function Seat({ seat, selected, onToggle, index }) {
   return (
     <button
       type="button"
-      className={`seat seat-${status}`}
+      className={`seat seat-${status}${mine ? " seat-mine" : ""}`}
       style={{ animationDelay: `${index * 12}ms` }}
       disabled={disabled}
       onClick={() => onToggle(seat)}
-      title={`${seat.seatNumber} — ${status}`}
-      aria-label={`Seat ${seat.seatNumber}, ${status}`}
+      title={`${seat.seatNumber} — ${mine ? "your hold" : status}`}
+      aria-label={`Seat ${seat.seatNumber}, ${mine ? "your hold" : status}`}
     >
       {label}
     </button>

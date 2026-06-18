@@ -18,7 +18,7 @@ const LEGEND = [
   { key: "booked", label: "Booked" },
 ];
 
-export default function SeatGrid({ seats, selected, onToggle }) {
+export default function SeatGrid({ seats, selected, mine = [], onToggle }) {
   const rows = groupRows(seats);
 
   // A running index across all seats so the entrance animation staggers
@@ -39,6 +39,7 @@ export default function SeatGrid({ seats, selected, onToggle }) {
                 key={seat._id}
                 seat={seat}
                 selected={selected.includes(seat.seatNumber)}
+                mine={mine.includes(seat.seatNumber)}
                 onToggle={onToggle}
                 index={seatIndex++}
               />
