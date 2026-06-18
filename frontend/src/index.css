@@ -139,6 +139,206 @@ h1 {
   font-size: 0.9rem;
 }
 
+/* ---- Event list ---- */
+.event-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.2rem;
+}
+.event-card {
+  display: block;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  color: var(--text);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.event-card:hover {
+  text-decoration: none;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(31, 36, 48, 0.1);
+}
+.event-card h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+}
+.event-venue {
+  margin: 0.5rem 0;
+}
+.event-seats {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: var(--accent-bg, rgba(79, 70, 229, 0.1));
+  color: var(--primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* ---- Event detail ---- */
+.back-link {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+.event-meta {
+  margin-bottom: 1.5rem;
+}
+
+/* ---- Seat area ---- */
+.seat-area {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.5rem 1rem 1.25rem;
+  overflow-x: auto;
+}
+
+/* Cinema-style curved screen with a soft glow */
+.screen-curve {
+  width: min(70%, 420px);
+  height: 12px;
+  margin: 0.5rem auto 0;
+  background: linear-gradient(180deg, #c7cdfb, #e7e9fb);
+  border-radius: 50%;
+  transform: perspective(140px) rotateX(-32deg);
+  box-shadow: 0 -6px 26px rgba(79, 70, 229, 0.28);
+}
+.screen-label {
+  text-align: center;
+  letter-spacing: 5px;
+  font-size: 0.68rem;
+  color: var(--muted);
+  margin: 0.75rem 0 1.75rem;
+}
+
+.seat-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+}
+.seat-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.row-label {
+  width: 1.2rem;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+/* Individual seat */
+.seat {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 8px 8px 4px 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  /* Staggered entrance — delay is set inline per seat */
+  animation: seatPop 0.42s cubic-bezier(0.2, 0.85, 0.25, 1.05) backwards;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+}
+.seat:hover:not(:disabled) {
+  transform: translateY(-4px) scale(1.08);
+  box-shadow: 0 8px 16px rgba(31, 36, 48, 0.22);
+}
+.seat:disabled {
+  cursor: not-allowed;
+}
+.seat-available {
+  background: var(--seat-available);
+}
+.seat-selected {
+  background: var(--seat-selected);
+  transform: scale(1.06);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.35);
+  animation: seatPop 0.42s cubic-bezier(0.2, 0.85, 0.25, 1.05) backwards,
+    seatPulse 1.6s ease-in-out infinite;
+}
+.seat-reserved {
+  background: var(--seat-reserved);
+}
+.seat-booked {
+  background: var(--seat-booked);
+}
+
+@keyframes seatPop {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes seatPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.18);
+  }
+}
+
+/* Respect users who prefer no motion */
+@media (prefers-reduced-motion: reduce) {
+  .seat,
+  .seat-selected {
+    animation: none;
+  }
+}
+
+/* ---- Legend ---- */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.25rem;
+  margin-top: 1.75rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.legend-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  display: inline-block;
+  /* Swatches only show color — no seat animation/scaling. */
+  animation: none;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ---- Selection bar ---- */
+.selection-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
 /* ---- Forms ---- */
 .form-control {
   display: flex;
