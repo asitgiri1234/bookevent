@@ -44,6 +44,11 @@ export const register = async (req, res, next) => {
     }
 
     const code = generateCode();
+
+    // Send the email first — if delivery fails we don't create the account,
+    // avoiding an orphaned unverified user that can never receive a code.
+    const previewUrl = await sendVerificationEmail(normalizedEmail, code);
+
     const user = await User.create({
       name,
       email: normalizedEmail,
@@ -52,8 +57,6 @@ export const register = async (req, res, next) => {
       verificationCode: code,
       verificationCodeExpires: new Date(Date.now() + CODE_TTL_MS),
     });
-
-    const previewUrl = await sendVerificationEmail(user.email, code);
 
     res.status(201).json({
       message: "Verification code sent to your email",
