@@ -44,11 +44,6 @@ export const register = async (req, res, next) => {
     }
 
     const code = generateCode();
-
-    // Send the email first — if delivery fails we don't create the account,
-    // avoiding an orphaned unverified user that can never receive a code.
-    const previewUrl = await sendVerificationEmail(normalizedEmail, code);
-
     const user = await User.create({
       name,
       email: normalizedEmail,
@@ -58,9 +53,23 @@ export const register = async (req, res, next) => {
       verificationCodeExpires: new Date(Date.now() + CODE_TTL_MS),
     });
 
+    // Sending the email must NOT crash registration. If delivery hiccups, the
+    // account still exists and the user can request a fresh code via "Resend".
+    let previewUrl = null;
+    let emailSent = true;
+    try {
+      previewUrl = await sendVerificationEmail(user.email, code);
+    } catch (err) {
+      emailSent = false;
+      console.error("Verification email failed to send:", err.message);
+    }
+
     res.status(201).json({
-      message: "Verification code sent to your email",
+      message: emailSent
+        ? "Verification code sent to your email"
+        : "Account created, but the email couldn't be sent. Use 'Resend code'.",
       email: user.email,
+      emailSent,
       // Convenience for the Ethereal test inbox so you can open the email.
       previewUrl,
     });
