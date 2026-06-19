@@ -37,6 +37,14 @@ let transporterPromise = null;
 const getTransporter = () => {
   if (!transporterPromise) {
     transporterPromise = (async () => {
+      // Fail fast instead of hanging if SMTP ports are blocked (e.g. on many
+      // cloud hosts like Render). Use Resend (HTTP API) in those environments.
+      const timeouts = {
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000,
+      };
+
       if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
         console.log("Mailer: using Gmail SMTP");
         return nodemailer.createTransport({
@@ -45,6 +53,7 @@ const getTransporter = () => {
             user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_PASS,
           },
+          ...timeouts,
         });
       }
       const testAccount = await nodemailer.createTestAccount();
@@ -54,6 +63,7 @@ const getTransporter = () => {
         port: 587,
         secure: false,
         auth: { user: testAccount.user, pass: testAccount.pass },
+        ...timeouts,
       });
     })();
   }

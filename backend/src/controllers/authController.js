@@ -53,26 +53,17 @@ export const register = async (req, res, next) => {
       verificationCodeExpires: new Date(Date.now() + CODE_TTL_MS),
     });
 
-    // Sending the email must NOT crash registration. If delivery hiccups, the
-    // account still exists and the user can request a fresh code via "Resend".
-    let previewUrl = null;
-    let emailSent = true;
-    try {
-      previewUrl = await sendVerificationEmail(user.email, code);
-    } catch (err) {
-      emailSent = false;
-      console.error("Verification email failed to send:", err.message);
-    }
-
+    // Respond immediately — never make the user wait on (or hang on) the email
+    // provider. The email is sent in the background; if it fails, the account
+    // still exists and the user can request a fresh code via "Resend".
     res.status(201).json({
-      message: emailSent
-        ? "Verification code sent to your email"
-        : "Account created, but the email couldn't be sent. Use 'Resend code'.",
+      message: "Verification code sent to your email",
       email: user.email,
-      emailSent,
-      // Convenience for the Ethereal test inbox so you can open the email.
-      previewUrl,
     });
+
+    sendVerificationEmail(user.email, code).catch((err) =>
+      console.error("Verification email failed to send:", err.message)
+    );
   } catch (err) {
     next(err);
   }
