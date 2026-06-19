@@ -11,7 +11,9 @@ const app = express();
 // Core middleware
 // Optionally lock CORS to your deployed frontend via CLIENT_URL; otherwise
 // allow all origins (fine here since auth uses Bearer tokens, not cookies).
-app.use(cors(process.env.CLIENT_URL ? { origin: process.env.CLIENT_URL } : {}));
+// Trailing slashes are stripped so "https://app.vercel.app/" still matches.
+const clientUrl = process.env.CLIENT_URL?.replace(/\/+$/, "");
+app.use(cors(clientUrl ? { origin: clientUrl } : {}));
 app.use(express.json());
 
 // Health check — confirms the server is up
