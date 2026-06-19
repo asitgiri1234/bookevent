@@ -23,6 +23,16 @@ const buildHtml = (code) => `
     <p style="color:#6b7280;">This code expires in 10 minutes.</p>
   </div>`;
 
+// --- Mode 0: Brevo (HTTP API) ---
+// Free tier sends to ANY recipient once you verify a sender, and works on hosts
+// that block SMTP (Render etc.). EMAIL_FROM should be your verified sender.
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
+const senderEmail =
+  process.env.EMAIL_FROM?.match(/<([^>]+)>/)?.[1] || // "Name <a@b.com>" → a@b.com
+  process.env.EMAIL_FROM ||
+  process.env.EMAIL_USER ||
+  "no-reply@bookevent.app";
+
 // --- Mode 1: Resend ---
 const resendClient = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -75,6 +85,31 @@ const getTransporter = () => {
  * Returns an Ethereal preview URL when using the test inbox, otherwise null.
  */
 export const sendVerificationEmail = async (to, code) => {
+  // Mode 0: Brevo (HTTP API — not blocked by SMTP-restricted hosts, and can
+  // email any recipient once a sender is verified).
+  if (BREVO_API_KEY) {
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        "api-key": BREVO_API_KEY,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        sender: { email: senderEmail, name: "BookEvent" },
+        to: [{ email: to }],
+        subject: SUBJECT,
+        htmlContent: buildHtml(code),
+      }),
+    });
+    if (!res.ok) {
+      const detail = await res.text();
+      throw new Error(`Brevo send failed (${res.status}): ${detail}`);
+    }
+    console.log(`Verification email sent to ${to} via Brevo`);
+    return null;
+  }
+
   // Mode 1: Resend (real email via API)
   if (resendClient) {
     const { data, error } = await resendClient.emails.send({
