@@ -26,11 +26,8 @@ export default function Register() {
 
     setLoading(true);
     try {
-      const data = await register(name, email, password);
-      // Account created but unverified — go enter the emailed code.
-      navigate("/verify", {
-        state: { email: data.email, previewUrl: data.previewUrl },
-      });
+      await register(name, email, password);
+      navigate("/");
     } catch (err) {
       setError(
         err.response?.data?.message || "Registration failed. Please try again."

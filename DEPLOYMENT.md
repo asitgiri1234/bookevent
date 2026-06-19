@@ -47,14 +47,8 @@ npm run seed
 | --- | --- | --- |
 | `MONGO_URI` | ✅ | Your MongoDB Atlas connection string |
 | `JWT_SECRET` | ✅ | A long random string (token signing) |
-| `EMAIL_USER` | for email | Your Gmail address |
-| `EMAIL_PASS` | for email | Gmail **App Password** (16 chars, no spaces) |
 | `CLIENT_URL` | optional | Your Vercel URL, to lock CORS (e.g. `https://bookevent.vercel.app`) |
 | `PORT` | ❌ | Render sets this automatically — do not add it |
-
-> Email alternative: instead of `EMAIL_USER`/`EMAIL_PASS`, set `RESEND_API_KEY`
-> (and `EMAIL_FROM`) to send via Resend. Leave all blank to use the Ethereal
-> test inbox (not useful in production).
 
 ---
 
@@ -81,7 +75,7 @@ npm run seed
 
 - (Optional) Set `CLIENT_URL` on Render to your Vercel URL and redeploy the
   backend, so CORS is restricted to your frontend.
-- Open the Vercel URL, register, verify via the emailed code, and book a seat.
+- Open the Vercel URL, register, log in, and book a seat.
 
 ### Note on Render's free tier
 Free services sleep after ~15 min idle, so the **first request after idle can

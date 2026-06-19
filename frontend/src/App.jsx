@@ -7,7 +7,6 @@ import EventDetail from "./pages/EventDetail";
 import MyBookings from "./pages/MyBookings";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Verify from "./pages/Verify";
 
 export default function App() {
   return (
@@ -45,7 +44,6 @@ export default function App() {
           {/* Public auth pages */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/verify" element={<Verify />} />
         </Routes>
       </main>
     </>
